@@ -1,11 +1,12 @@
 package com.gestor.gestioncomercial.servicio;
 
-import com.gestor.gestioncomercial.entidad.Producto;
+import com.gestor.gestioncomercial.dto.ProductoRequestDTO;
+import com.gestor.gestioncomercial.dto.ProductoResponseDTO;
 import java.util.List;
-import java.util.Optional;
 
 public interface ProductoService {
-    List<Producto> listarTodos();
-    Optional<Producto> buscarPorId(Long id);
-    Producto guardar(Producto producto);
+    List<ProductoResponseDTO> listarTodos();
+    ProductoResponseDTO buscarPorId(Long id);
+    ProductoResponseDTO guardar(ProductoRequestDTO productoRequestDTO);
+    void reducirStock(Long idProducto, Integer cantidad);
 }

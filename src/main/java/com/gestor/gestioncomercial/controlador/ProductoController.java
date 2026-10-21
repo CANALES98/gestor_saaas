@@ -1,9 +1,8 @@
 package com.gestor.gestioncomercial.controlador;
 
-import com.gestor.gestioncomercial.entidad.Categoria;
-import com.gestor.gestioncomercial.entidad.Producto;
-import com.gestor.gestioncomercial.repositorio.CategoriaRepository;
-import com.gestor.gestioncomercial.repositorio.ProductoRepository;
+import com.gestor.gestioncomercial.dto.ProductoRequestDTO;
+import com.gestor.gestioncomercial.dto.ProductoResponseDTO;
+import com.gestor.gestioncomercial.servicio.ProductoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,34 +15,30 @@ import java.util.List;
 public class ProductoController {
 
     @Autowired
-    private ProductoRepository productoRepository;
+    private ProductoService productoService;
 
-    @Autowired
-    private CategoriaRepository categoriaRepository;
-
-    // Listar todos los productos
     @GetMapping
-    public List<Producto> listarProductos() {
-        return productoRepository.findAll();
+    public List<ProductoResponseDTO> listarProductos() {
+        return productoService.listarTodos();
     }
 
-    // Registrar un nuevo producto
     @PostMapping
-    public ResponseEntity<?> guardarProducto(@RequestBody Producto producto) {
-        // Validar que la categoría enviada exista
-        if (producto.getCategoria() == null || producto.getCategoria().getIdCategoria() == null) {
-            return ResponseEntity.badRequest().body("Debe especificar el ID de la categoría.");
+    public ResponseEntity<?> guardarProducto(@RequestBody ProductoRequestDTO productoRequestDTO) {
+        try {
+            ProductoResponseDTO nuevoProducto = productoService.guardar(productoRequestDTO);
+            return ResponseEntity.status(HttpStatus.CREATED).body(nuevoProducto);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
+    }
 
-        Categoria categoriaExistente = categoriaRepository.findById(producto.getCategoria().getIdCategoria())
-                .orElse(null);
-
-        if (categoriaExistente == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("La categoría especificada no existe.");
+    @PatchMapping("/{id}/reducir-stock")
+    public ResponseEntity<?> reducirStock(@PathVariable Long id, @RequestParam Integer cantidad) {
+        try {
+            productoService.reducirStock(id, cantidad);
+            return ResponseEntity.ok("Stock actualizado correctamente.");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
-
-        producto.setCategoria(categoriaExistente);
-        Producto nuevoProducto = productoRepository.save(producto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(nuevoProducto);
     }
 }
